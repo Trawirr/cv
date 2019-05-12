@@ -1,0 +1,579 @@
+'''
+Politechnika Gdanska, Wydział Fizyki Technicznej i Matematyki Stosowanej
+Matematyka Stosowana, rok 2.
+Marcin Garnowski
+'''
+
+import numpy as np
+import matplotlib.pyplot as plt
+import random
+import time
+import readchar
+import os
+
+'''
+słownik do cyfr w systemie szesnastkowym'''
+colhex = {10:'a',
+         11:'b',
+         12:'c',
+         13:'d',
+         14:'e',
+         15:'f'}
+
+'''
+funkcja zwracająca kod hex odpowiadający kolorowi
+a - minimalna wartość cyfry
+b - maksymalna wartość cyfry'''
+def rand_color(a=0,b=15):
+    color = '#'
+    for i in range(0,6):
+        x = random.randint(a,b)
+        if x < 10:
+            color += str(x)
+        else:
+            color += colhex[x]
+    return color
+
+'''
+funkcja czyszcząca konsolę'''
+def cls():
+    os.system('cls' if os.name == 'nt' else 'clear')
+
+'''
+funkcja sortowania bąbelkowego
+A - lista
+counter - dwuelementowa lista, gdzie po wywołaniu funkcji pierwszy element będzie czasem działa funkcji,
+a drugi - liczbą zliczanych operacji
+counting - wartość logiczna True, jeżeli funkcja ma zliczać operacje, False jeśli nie'''
+def bubble(A, counter=[0, 0], counting=True):
+    t0 = time.time()
+    if counting == False:
+        d = len(A) - 1
+        for i in range(0, d):
+            cond = 0
+            for j in range(0, d - i):
+                if A[j] > A[j + 1]:
+                    cond = 1
+                    x = A[j]
+                    A[j] = A[j + 1]
+                    A[j + 1] = x
+            if cond == 0:
+                break
+    else:
+        counter[0] = 0
+        d = len(A) - 1
+        for i in range(0, d):
+            cond = 0
+            for j in range(0, d - i):
+                if A[j] > A[j + 1]:
+                    cond = 1
+                    x = A[j]
+                    A[j] = A[j + 1]
+                    A[j + 1] = x
+                    counter[0] += 1
+            if cond == 0:
+                break
+    counter[1] = time.time() - t0
+
+'''
+funkcja sortowania przez wstawianie
+A - lista
+counter - dwuelementowa lista, gdzie po wywołaniu funkcji pierwszy element będzie czasem działa funkcji,
+a drugi - liczbą zliczanych operacji
+counting - wartość logiczna True, jeżeli funkcja ma zliczać operacje, False jeśli nie'''
+def insertion(A, counter=[0, 0], counting=True):
+    t0 = time.time()
+    if counting == False:
+        B = []
+        for key in A[0:len(A)]:
+            i = 0
+            while i < len(B) and B[i] < key:
+                i += 1
+            B.insert(i, key)
+    else:
+        B = []
+        for key in A[0:len(A)]:
+            i = 0
+            counter[0] += 1
+            while i < len(B) and B[i] < key:
+                counter[0] += 1
+                i += 1
+            B.insert(i, key)
+    counter[1] = time.time() - t0
+    return B
+
+'''
+funkcja sortowania Shella
+A - lista
+counter - dwuelementowa lista, gdzie po wywołaniu funkcji pierwszy element będzie czasem działa funkcji,
+a drugi - liczbą zliczanych operacji
+counting - wartość logiczna True, jeżeli funkcja ma zliczać operacje, False jeśli nie
+dist_mod - wartości 1 lub 2 odpowiadające dwóm sposobom liczenia odległości między porównywanymi elementami'''
+def shell(A, counter=[0, 0], counting=True, dist_mod = 2):
+    t0 = time.time()
+    if dist_mod == 1:
+        d = len(A)
+        D = []
+        while d >= 1:
+            d = int(d / 2)
+            D.append(d)
+
+    if dist_mod == 2:
+        alen = len(A)
+        k = 2
+        D = []
+        d = 2 * int(alen/(2**k)) + 1
+        while 1 not in D:
+            D.append(d)
+            k += 1
+            d = 2 * int(alen/(2**k)) + 1
+
+    if counting == False:
+        for d in D:
+            i = d
+            while i < len(A):
+                key = A[i]
+                j = i
+                while j >= d and A[j - d] > key:
+                    A[j] = A[j - d]
+                    j -= d
+                A[j] = key
+                i += 1
+    else:
+        for d in D:
+            i = d
+            while i < len(A):
+                key = A[i]
+                j = i
+                counter[0] += 1
+                while j >= d and A[j - d] > key:
+                    counter[0] += 1
+                    A[j] = A[j - d]
+                    j -= d
+                A[j] = key
+                i += 1
+    counter[1] = time.time() - t0
+
+'''
+funkcja scalania dwóch uporządkowanych list
+A - pierwsza lista
+B - druga lista
+counter - dwuelementowa lista, gdzie po wywołaniu funkcji pierwszy element będzie czasem działa funkcji,
+a drugi - liczbą zliczanych operacji
+counting - wartość logiczna True, jeżeli funkcja ma zliczać operacje, False jeśli nie'''
+def merge(A, B, counter, counting=True):
+    if counting == False:
+        list = []
+        while len(A) + len(B) > 0:
+            if len(A) == 0:
+                x = B.pop(0)
+
+            elif len(B) == 0:
+                x = A.pop(0)
+
+            elif A[0] < B[0]:
+                x = A.pop(0)
+
+            else:
+                x = B.pop(0)
+            list.append(x)
+        return list
+    else:
+        list = []
+        while len(A) + len(B) > 0:
+            counter[0] += 1
+            if len(A) == 0:
+                x = B.pop(0)
+
+            elif len(B) == 0:
+                x = A.pop(0)
+
+            elif A[0] < B[0]:
+                x = A.pop(0)
+
+            else:
+                x = B.pop(0)
+            list.append(x)
+        return list
+
+'''
+funkcja sortowania przez scalanie
+A - lista
+p - początkowy element sortowanego fragmentu listy
+r - końcowy element sortowanego fragmentu listy
+counter - dwuelementowa lista, gdzie po wywołaniu funkcji pierwszy element będzie czasem działa funkcji,
+a drugi - liczbą zliczanych operacji
+counting - wartość logiczna True, jeżeli funkcja ma zliczać operacje, False jeśli nie'''
+def merge_re(A, p, r, counter, counting=True):
+    if p == r:
+        # print(p)
+        return [A[p]]
+    mid = int((r - p) / 2)
+    X = merge_re(A, p, p + mid, counter, counting)
+    Y = merge_re(A, p + mid + 1, r, counter, counting)
+    return merge(X, Y, counter, counting)
+
+'''
+funkcja wywołująca sortowanie przez scalanie oraz licząca czas jego działania
+A - lista
+counter - dwuelementowa lista, gdzie po wywołaniu funkcji pierwszy element będzie czasem działa funkcji,
+a drugi - liczbą zliczanych operacji
+counting - wartość logiczna True, jeżeli funkcja ma zliczać operacje, False jeśli nie'''
+def merge_sort(A, counter, counting=True):
+    t0 = time.time()
+    p = 0
+    r = len(A) - 1
+    B = merge_re(A, p, r, counter, counting)
+    counter[1] = time.time() - t0
+    return B
+
+'''
+funkcja dzielenia listy względem ostatniego elementu
+A - lista
+p - początkowy element dzielonego fragmentu listy
+r - końcowy element dzielonego fragmentu listy
+counter - dwuelementowa lista, gdzie po wywołaniu funkcji pierwszy element będzie czasem działa funkcji,
+a drugi - liczbą zliczanych operacji
+counting - wartość logiczna True, jeżeli funkcja ma zliczać operacje, False jeśli nie'''
+def part(A, p, r, counter, counting=True):
+    if counting == False:
+        piv = A[r - 1]
+        i = p
+        j = p
+        while j < r - 1:
+            if A[j] < piv:
+                x = A[i]
+                A[i] = A[j]
+                A[j] = x
+                i += 1
+            j += 1
+        A[r - 1] = A[i]
+        A[i] = piv
+        return i
+    else:
+        piv = A[r - 1]
+        i = p
+        j = p
+        while j < r - 1:
+            if A[j] < piv:
+                counter[0] += 1
+                x = A[i]
+                A[i] = A[j]
+                A[j] = x
+                i += 1
+            j += 1
+        A[r - 1] = A[i]
+        A[i] = piv
+        return i
+
+'''
+funkcja szybkiego sortowania
+A - lista
+p - początkowy element sortowanego fragmentu listy
+r - końcowy element sortowanego fragmentu listy
+counter - dwuelementowa lista, gdzie po wywołaniu funkcji pierwszy element będzie czasem działa funkcji,
+a drugi - liczbą zliczanych operacji
+counting - wartość logiczna True, jeżeli funkcja ma zliczać operacje, False jeśli nie'''
+def quick_re(A, p, r, counter, counting):
+    if r - p > 1:
+        d = part(A, p, r, counter, counting)
+        quick_re(A, p, d, counter, counting)
+        quick_re(A, d + 1, r, counter, counting)
+
+'''
+funkcja wywołująca szybkie sortowanie oraz licząca czas jego działania
+A - lista
+counter - dwuelementowa lista, gdzie po wywołaniu funkcji pierwszy element będzie czasem działa funkcji,
+a drugi - liczbą zliczanych operacji
+counting - wartość logiczna True, jeżeli funkcja ma zliczać operacje, False jeśli nie'''
+def quick_sort(A, counter=[0, 0], counting=True):
+    t0 = time.time()
+    p = 0
+    r = len(A)
+    quick_re(A, p, r, counter, counting)
+    counter[1] = time.time() - t0
+'''
+funkcja zwracająca n-elementową listę składającą się z losowych liczb naturalnych z przedziału [0, max]'''
+def randlist(n, max=100000):
+    random_list = [random.randint(1, max) for i in range(0, n)]
+    return random_list
+'''
+funkcja wyświetlająca menu
+menu - lista w formacie enumerate
+i - wskazywane miejsce, zmienna wykorzystywana tylko przy trybie arrow_mode
+arrow_mode - zmienna logiczna włączająca lub wyłączająca wskazywanie i-tego elementu menu przy pomocy symbolu '<<<' '''
+def disp_menu(menu, i = 0, arrow_mode = False):
+    for num, fun in menu:
+        if arrow_mode is True and i == num:
+            print(str(num), fun, "<<<")
+        else:
+            print(str(num), fun)
+'''
+funkcja wyświetlająca wykres słupkowy
+data - wartości
+grp_num - liczba grup, na które będą podzielone słupki
+var_num - liczba różnych słupków - w każdej grupie var_num słupków
+var_names - lista nazw różnych słupków, będą wyświetlane w legendzie, długość listy musi być równa var_num
+n_values - lista wartości odpowiadających grupom, będą wyświetlane pod każdą grupą na osi X, długość listy 
+                                                                                                  musi być równa grp_num
+plot_title - tekst, który będzie wyświetlany jako tytuł nad wykresem
+bar_width - szerokość słupka'''
+def grouped_bars(data, grp_num, var_num, var_names, n_values, plot_title, bar_width = 0.2):
+    if len(var_names) != var_num or len(data) == 0:
+        print("Błędne dane!")
+        return 0
+    #rozdzielenie danych
+    bars = [data[i: :var_num] for i in range(0, var_num)]
+    #proporcje - pierwiastek 3. stopnia
+    barsln = [list(b) for b in np.cbrt(bars)]
+    maxbar = max([max(b) for b in barsln])
+    #przedziały kolumn
+    r=[[i*bar_width*(var_num+1) for i in range(0,grp_num)]]
+    for i in range(0, var_num - 1):
+        r1 = [x + bar_width for x in r[i]]
+        r.append(r1)
+    r = np.array(r)
+    #rysowanie słupków
+    for i in range(0, var_num):
+        plt.bar(r[i], barsln[i], color=rand_color(5,15), width=bar_width, edgecolor='white', label=var_names[i])
+        for j in range(0,len(bars[i])):
+            plt.text(r[i][j]-0.045, barsln[i][j] - maxbar*0.035, bars[i][j], rotation = 90)
+    #tytuł pod osią X
+    plt.xlabel('liczba elementów tablicy', fontweight='bold')
+    #wartosci na słupkach
+    plt.xticks([b for b in r[int(var_num/2)]], [str(en) for en in n_values], rotation = -20)
+    #usuniecie przedzialów z osi Y
+    plt.yticks([],[])
+    #wyświetlenie wykresu
+    plt.title(plot_title)   #tytuł
+    plt.legend()            #legenda
+    plt.show()              #wyswietlenie samego wykresu
+
+'''__________________________________________________________________________________'''
+# wyswietlanie menu
+menu_list = ["Shell sort", "Merge sort", "Quick sort", "Insertion sort", "Bubble sort", "Wykresy", "Wyjście"]
+menu_list2 = ["Liczba porównań", "Czas wykonania", "Wyjście"]
+i = 1
+cls()
+while True:                         #wybieranie opcji z menu
+    menu = enumerate(menu_list, 1)
+    disp_menu(menu, i, True)
+    pos = readchar.readkey()
+    print(pos)
+    cls()
+    if pos in ['s', '2']:
+        i = i%7 + 1
+    elif pos in ['w', '8']:
+        i = (i-2)%7 + 1
+    elif ord(pos) == 13:
+        break
+
+if i in list(range(1,6)):           #otwieranie pliku do zapisu
+    fsort = open('sort.txt', 'w')
+
+# shell sort
+if i == 1:
+    n = int(input("Proszę podać długość listy "))
+    unsorted = randlist(n)
+    sorted = [el for el in unsorted]
+    counter = [0, 0]
+    shell(sorted, counter, True)
+    msg = "Shell sort\nWejscie: {}\n.\n.\n.\nWyjscie: {}\nliczba porownan: {}\nczas dzialania: {}s".format(unsorted, sorted,
+                                                                                               counter[0],
+                                                                                               counter[1])
+    print(msg)
+    fsort.write(msg)
+    fsort.close()
+    pause = input()
+# merge sort
+elif i == 2:
+    n = int(input("Proszę podać długość listy "))
+    unsorted = randlist(n)
+    counter = [0, 0]
+    sorted = merge_sort(unsorted, counter, True)
+    msg = "Merge sort\nWejscie: {}\n.\n.\n.\nWyjscie: {}\nliczba porownan: {}\nczas dzialania: {}s".format(unsorted, sorted,
+                                                                                               counter[0],
+                                                                                               counter[1])
+    print(msg)
+    fsort.write(msg)
+    fsort.close()
+    pause = input()
+
+# quick sort
+elif i == 3:
+    n = int(input("Proszę podać długość listy "))
+    unsorted = randlist(n)
+    sorted = [el for el in unsorted]
+    counter = [0, 0]
+    quick_sort(sorted, counter, True)
+    msg = "Quick sort\nWejscie: {}\n.\n.\n.\nWyjscie: {}\nliczba porownan: {}\nczas dzialania: {}s".format(unsorted, sorted,
+                                                                                               counter[0],
+                                                                                               counter[1])
+    print(msg)
+    fsort.write(msg)
+    fsort.close()
+    pause = input()
+
+# insertion sort
+elif i == 4:
+    n = int(input("Proszę podać długość listy "))
+    unsorted = randlist(n)
+    counter = [0, 0]
+    sorted = insertion(unsorted, counter, True)
+    msg = "Insertion sort\nWejscie: {}\n.\n.\n.\nWyjscie: {}\nliczba porownan: {}\nczas dzialania: {}s".format(unsorted, sorted,
+                                                                                               counter[0],
+                                                                                               counter[1])
+    print(msg)
+    fsort.write(msg)
+    fsort.close()
+    pause = input()
+
+# bubble sort
+elif i == 5:
+    n = int(input("Proszę podać długość listy "))
+    unsorted = randlist(n)
+    sorted = [el for el in unsorted]
+    counter = [0, 0]
+    bubble(sorted, counter, True)
+    msg = "Bubble sort\nWejscie: {}\n.\n.\n.\nWyjscie: {}\nliczba porownan: {}\nczas dzialania: {}s".format(unsorted, sorted,
+                                                                                               counter[0],
+                                                                                               counter[1])
+    print(msg)
+    fsort.write(msg)
+    fsort.close()
+    pause = input()
+
+# wykresy
+elif i == 6:
+    j = 1
+    while True:                             #wybieranie opcji z menu
+        menu2 = enumerate(menu_list2, 1)
+        disp_menu(menu2, j, True)
+        pos = readchar.readkey()
+        print(pos)
+        cls()
+        if pos in ['s', '2']:
+            j = j % 3 + 1
+        elif pos in ['w', '8']:
+            j = (j - 2) % 3 + 1
+        elif ord(pos) == 13:
+            break
+
+    while True:
+        n_list = [10000, 25000, 50000, 75000, 100000, 150000]
+        C = []
+        which_sort = [-1 for g in range(0,5)]
+        sorts_names = ["Bubble sort", "Insertion sort", "Shell sort", "Merge sort", "Quick sort"]
+        sorts = ["Bubble sort", "Insertion sort", "Shell sort", "Merge sort", "Quick sort", "Dalej"]
+
+        if j == 1:        # wykresy liczby porownan
+            k = 1
+            while True:                             #Wybieranie sortowań
+                menu3 = enumerate(sorts, 1)
+                print("  Niewybrane        Wybrane")
+                disp_menu(menu3, k, True)
+                pos = readchar.readkey()
+                print(pos)
+                cls()
+                if pos in ['s', '2']:
+                    k = k % 6 + 1
+                elif pos in ['w', '8']:
+                    k = (k - 2) % 6 + 1
+                elif ord(pos) == 13:
+                    if k in list(range(1, 6)):
+                        which_sort[k - 1] *= -1
+                        sorts[k - 1] = max(0, which_sort[k - 1]) * len("Niewybrane        ") * " " + sorts_names[
+                            k - 1]
+                    elif k == 6:
+                        break
+
+            var_num = len([x for x in which_sort if x > 0])
+
+            for n in n_list:                        #Sortowanie wybranymi algorytmami
+                print(n)
+                unsorted = randlist(n)
+                sorted = [[el for el in unsorted] for k in range(0, 5)]
+                counter = [[0, 0] for k in range(0, 5)]
+                if which_sort[0] == 1:
+                    bubble(sorted[0], counter[0], True)
+                if which_sort[1] == 1:
+                    insertion(sorted[1], counter[1], True)
+                if which_sort[2] == 1:
+                    shell(sorted[2], counter[2], True)
+                if which_sort[3] == 1:
+                    merge_sort(sorted[3], counter[3], True)
+                if which_sort[4] == 1:
+                    quick_sort(sorted[4], counter[4], True)
+
+                counter = [x for x in counter if x[1] != 0]     #oddzielane danych wybranych od niewybranych
+                for con in counter:
+                    C.append(con[0])
+            plot_names = [sorts_names[h] for h in range(0,5) if which_sort[h]==1]#oddzielanie wybranych nazw sortowań od niewybranych
+            grouped_bars(C, len(n_list), var_num, plot_names, n_list, "Liczba porównań") #wyswietlanie wykresu
+
+        if j == 2:        # wykresy czasu ze zliczaniem i bez
+            k = 1
+            while True:                             #Wybieranie sortowań
+                menu3 = enumerate(sorts, 1)
+                print("  Niewybrane        Wybrane")
+                disp_menu(menu3, k, True)
+                pos = readchar.readkey()
+                print(pos)
+                cls()
+                if pos in ['s', '2']:
+                    k = k % 6 + 1
+                elif pos in ['w', '8']:
+                    k = (k - 2) % 6 + 1
+                elif ord(pos) == 13:
+                    if k in list(range(1, 6)):
+                        which_sort[k - 1] *= -1
+                        sorts[k - 1] = max(0, which_sort[k - 1]) * len("Niewybrane        ") * " " + sorts_names[k - 1]
+                    elif k == 6:
+                        break
+
+            var_num = len([x for x in which_sort if x > 0])
+
+            for n in n_list:                        #Sortowanie wybranymi algorytmami
+                print(n)
+                unsorted = randlist(n)
+                sorted = [[el for el in unsorted] for k in range(0, 10)]
+                counter = [[0, 0] for k in range(0, 10)]
+
+                if which_sort[0] == 1:
+                    bubble(sorted[0], counter[0], False)
+                    bubble(sorted[1], counter[1], True)
+                if which_sort[1] == 1:
+                    insertion(sorted[2], counter[2], False)
+                    insertion(sorted[3], counter[3], True)
+                if which_sort[2] == 1:
+                    shell(sorted[4], counter[4], False)
+                    shell(sorted[5], counter[5], True)
+                if which_sort[3] == 1:
+                    merge_sort(sorted[6], counter[6], False)
+                    merge_sort(sorted[7], counter[7], True)
+                if which_sort[4] == 1:
+                    quick_sort(sorted[8], counter[8], False)
+                    quick_sort(sorted[9], counter[9], True)
+
+                counter = [x for x in counter if x[1] != 0]     #oddzielane danych wybranych od niewybranych
+                for con in counter:
+                    C.append(con[1])
+            C = [round(c,3) for c in C]                         #zaokrąglanie czasu do tysięcznych sekundy
+            sorts_names = ["Bubble sort bez zliczania", "Bubble sort", "Insertion sort bez zliczania", "Insertion sort",
+                           "Shell sort bez zliczania", "Shell sort", "Merge sort bez zliczania", "Merge sort",
+                           "Quick sort bez zliczania", "Quick sort"]
+            plot_names = []
+            for k in range(0,5):        #oddzielanie wybranych nazw sortowań od niewybranych
+                if which_sort[k] == 1:
+                    plot_names.append(sorts_names[2*k])
+                    plot_names.append(sorts_names[2*k + 1])
+            grouped_bars(C, len(n_list), var_num*2, plot_names, n_list, "Czas działania") #wyswietlanie wykresu
+
+        if j == 3:      #wyjście z opcji wykresów
+            pause = input()
+            exit()
+        break
+# wyjscie
+else:
+    pause = input()
+    exit()
