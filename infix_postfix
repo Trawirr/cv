@@ -1,0 +1,67 @@
+'''
+Politechnika Gdańska, Wydział Fizyki Technicznej i Matematyki Stosowanej
+Matematyka Stosowana, rok 2.
+Marcin Garnowski
+'''
+
+import Garnowski_stos as gs
+#in2post
+#post2calc
+#in2calc
+
+#nazwy plików do odczytu i zapisu
+filename1 = ['infix.txt', 'postfix.txt', 'infix.txt']
+filename2 = ['postfix.txt', 'result.txt', 'result.txt']
+
+menu = ['Infix --> Postfix',
+        'Postfix --> Result',
+        'Infix --> Result',
+        'Infix by hand']
+
+#wyświetlanie menu
+menu_enum = enumerate(menu, 1)
+for i, option in menu_enum:
+    print(i, option)
+
+#wybieranie opcji z menu
+i = int(input())
+
+#otwieranie pliku i wczytywanie danych
+if i in range(1,4):
+    file = open(filename1[i-1], 'r')
+    lines = file.readlines()
+    lines = [line.strip('\n') for line in lines]
+    file.close()
+
+#konwersja z notacji infix na notację postfix
+if i == 1:
+    wt_lines = [gs.in2post(line) for line in lines]
+    wt_lines = [[str(el)+' ' for el in line] for line in wt_lines]  #zamiana na dane odpowiednie do zapisu
+    wt_lines = [''.join(line)+'\n' for line in wt_lines]
+
+#obliczanie wartości wyrażenia zapisanego w notacji postfix z pliku postfix.txt
+elif i == 2:
+    lines = [line.split() for line in lines]
+    wt_lines = [gs.post2calc(line) for line in lines]  #zamiana na dane odpowiednie do zapisu
+    wt_lines = [str(el)+'\n' for el in wt_lines]
+
+#obliczanie wartości wyrażenia zapisanego w notacji infix z plik infix.txt
+elif i == 3:
+    wt_lines = [gs.in2calc(line) for line in lines]  #zamiana na dane odpowiednie do zapisu
+    wt_lines = [str(el)+'\n' for el in wt_lines]
+
+if i in range(1,4):
+    file = open(filename2[i - 1], 'w')
+    file.writelines(wt_lines)
+    file.close()
+
+##obliczanie wartości wyrażenia zapisanego w notacji infix podanego przez użytkownika
+if i == 4:
+    in_line = input('Proszę napisać wyrażenie:\n')
+    post_line = gs.in2post(in_line)
+    post_line = [str(el) + ' ' for el in post_line]
+    post_line = ''.join(post_line)
+    print('Infix: {}\n.\n.\n.\nPostfix: {}\n.\n.\n.\nWynik: {}'.format(
+        in_line,
+        post_line,
+        gs.in2calc(in_line)))
