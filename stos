@@ -1,0 +1,143 @@
+'''
+Politechnika Gdańska, Wydział Fizyki Technicznej i Matematyki Stosowanej
+Matematyka Stosowana, rok 2.
+Marcin Garnowski
+'''
+
+#stos jako klasa
+class stos:
+
+    #tworzenie nowego obiektu klasy stos
+    #n - rozmiar stosu
+    #s - lista elementów stosu
+    #p - indeks górnego elementu stosu
+    def __init__(self, n):
+        self.stacklen = n
+        self.s = [0 for i in range(0, n)]
+        self.p = -1
+
+    #metoda dodawania elementu na szczyt stosu
+    #x - dowolny obiekt, np. liczba, tekst, znak itd.
+    def push(self, x):
+        if self.p >= self.stacklen-1:
+            print("Błąd przepełnienia!")
+        else:
+            self.p += 1
+            self.s[self.p] = x
+
+    #metoda zwracania i usuwania górnego elementu stosu
+    def pop(self):
+        if stos.isEmpty(self):
+            print("Błąd niedomiaru!")
+        else:
+            self.p -= 1
+            return self.s[self.p + 1]
+
+    #metoda sprawdzania wartości górnego elementu stosu
+    def peek(self):
+        if stos.isEmpty(self):
+            print("Stos jest pusty!")
+        else:
+            return self.s[self.p]
+
+    #metoda sprawdzania, czy stos jest pusty
+    def isEmpty(self):
+        if self.p < 0:
+            return True
+        else:
+            return False
+
+    #metoda sprawdzania liczby elementów na stosie
+    def size(self):
+        return self.p + 1
+
+#wstępna obróbka wyrażenia zapisanego jako zmienna tekstowa - rozdzielanie na liczby i działania i zapisywanie do listy
+#infix - tekst, wyrażenie zapisane w notacji infix
+def inread(infix):
+    signs = ['+', '-', '*', '/', '(', ')']
+    read = []
+    separators = [' ', '|', ',', '.']
+    #usuwanie separatorów
+    for s in separators:
+        infix = infix.replace(s, '')
+    i = 0
+    while i < len(infix):
+        if infix[i] in signs:
+            read.append(infix[i])
+            i += 1
+        #rozdzielanie cyfr na liczby
+        else:
+            k = i + 1
+            if k >= len(infix):
+                read.append(infix[i])
+                break
+            while infix[k] not in signs:
+                k += 1
+                if k == len(infix):
+                    break
+            if k >= len(infix):
+                read.append(infix[i:])
+            else:
+                read.append(infix[i:k])
+            i = k
+    return read
+
+#konwersja z notacji infix na notację postfix
+#infix - tekst, wyrażenie zapisane w notacji infix
+def in2post(infix):
+
+    infix = inread(infix)
+    signs = {'+': 1, '-': 1, '*': 2, '/': 2}
+    stos_fix = stos(len(infix))
+    postfix = []
+    for i in infix:
+
+        #symbol działania
+        if i in signs.keys():
+            val = signs[i]
+            while not stos_fix.isEmpty() and stos_fix.peek() is not '(' and signs[stos_fix.peek()] >= val:
+                postfix.append(stos_fix.pop())
+            stos_fix.push(i)
+
+        #lewy nawias - dodanie do stosu
+        elif i == '(':
+            stos_fix.push(i)
+
+        #nawias prawy - dodanie wszystkich znakow miedzy nawiasami do wyjscia
+        elif i == ')':
+            while stos_fix.peek() is not '(':
+                    postfix.append(stos_fix.pop())
+            if stos_fix.peek() is '(':
+                stos_fix.pop()
+
+        #znak to liczba/symbol - wczytanie do wyjscia
+        else:
+            postfix.append(i)
+
+    #dodanie reszty elementów ze stosu do wyjścia
+    while not stos_fix.isEmpty():
+        postfix += str(stos_fix.pop())
+    return postfix
+
+#obliczanie wartości wyrażenia zapisanego w notacji postfix
+def post2calc(postfix):
+    signs = ['+', '-', '*', '/']
+    stos_calc = stos(len(postfix))
+    for p in postfix:
+        if p not in signs:
+            stos_calc.push(float(p))
+        else:
+            x1, x2 = stos_calc.pop(), stos_calc.pop()
+            if p == '+':
+                stos_calc.push(x2 + x1)
+            if p == '-':
+                stos_calc.push(x2 - x1)
+            if p == '*':
+                stos_calc.push(x2 * x1)
+            if p == '/':
+                stos_calc.push(x2 / x1)
+    return stos_calc.pop()
+
+#obliczanie wartości wyrażenia zapisanego w notacji infix
+def in2calc(infix):
+    return post2calc(in2post(infix))
