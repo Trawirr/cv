@@ -1,0 +1,221 @@
+'''
+Politechnika Gdańska, Wydział Fizyki Technicznej i Matematyki Stosowanej
+Matematyka Stosowana, rok 2.
+Marcin Garnowski
+'''
+
+
+import numpy
+import readchar
+import os
+
+'''
+funkcja czyszcząca konsolę
+'''
+def cls():
+    os.system('cls' if os.name == 'nt' else 'clear')
+
+'''
+pierwsza funkcja hashująca,
+x - słowo, dla którego wyliczamy miejsce w tablicy,
+size - rozmiar tablicy, do której wstawiamy x,
+hash - początkowa wartość
+'''
+def h1(x, size, hash=0):
+    for c in x:
+        hash += ord(c)
+    hash = hash % size
+    return hash
+
+'''
+druga funkcja hashująca,
+x - słowo, dla którego wyliczamy miejsce w tablicy,
+size - rozmiar tablicy, do której wstawiamy x,
+hash - początkowa wartość
+'''
+def h2(x, size, hash=5381):
+    for c in x:
+        hash = (hash * 33 + ord(c)) % size
+    return hash
+
+'''
+trzecia funkcja hashująca,
+x - słowo, dla którego wyliczamy miejsce w tablicy,
+size - rozmiar tablicy, do której wstawiamy x,
+hash - początkowa wartość
+'''
+def h3(x, size, hash=5381):
+    for c in x:
+        hash = (hash * 11 + ord(c)) % size
+    return hash
+
+'''
+funkcja wstawiania nowego elementu do tablicy z dostępem rozproszonym,
+x - słowo, które wstawiamy do tablicy,
+list - tablica, do której wstawiamy x
+h - wybór, której funkcji używamy, wartości całkowite {0, 1, 2},
+col - wybór, którego sposobu rozwiązywania kolizji używamy, wartości całkowie {0, 1}
+counter - tablica do zliczania kolizji, powinna to być tablica dowolnej ilości zer,
+c - indeks wskazujący, w którym miejscu w tablicy counter będą zliczane kolizje
+'''
+def insert(x, list, h, col, counter = [0,0,0], c = 0):
+    if is_full(list):   # jeśli tablica jest pełna - nie można wstawić nowego elementu
+        return 0
+    size = len(list)
+    if h == 0:
+        pos = h1(x, size)
+        pos_zero = 0
+    elif h == 1 or h == 2:
+        pos = h2(x, size)
+        pos_zero = 5381
+
+    while list[pos] != '' and str(pos) != str(pos_zero):
+        counter[c] += 1 # zliczanie
+
+        if col == 0:            # liniowe rozwiazywanie kolizji
+            pos = (pos + 1) % size
+        elif col == 1:           # podwójne rozproszenie
+            if h == 0:
+                pos = h1(x, size, pos)
+            if h == 1:
+                pos = h2(x, size, pos)
+            if h == 2:
+                pos = h3(x, size, pos)
+
+    if pos == pos_zero and list[pos] is not '': # hashowanie wpadło w pętlę - nie można wstawić elementu
+        print('Nie można dodać elementu:', x)
+    else:               # znaleziono puste miejsce - można wstawić element
+        list[pos] = x
+
+'''
+funkcja wyszukiwania elementu tablicy z dostępem rozproszonym,
+x - słowo, którego szukamy w tablicy,
+list - tablica, w której szukamy x
+h - wybór, której funkcji używamy, wartości całkowite {0, 1, 2},
+col - wybór, którego sposobu rozwiązywania kolizji używamy, wartości całkowie {0, 1}
+'''
+def search(x, list, h, col):
+    size = len(list)
+    if h == 0:
+        pos = h1(x, size)
+        pos_zero = 0
+    elif h == 1 or h == 2:
+        pos = h2(x, size)
+        pos_zero = 5381
+
+    while list[pos] != '' and list[pos] != x and str(pos) != str(pos_zero):
+        if col == 0:  # liniowe rozwiazywanie kolizji
+            pos = (pos + 1) % size
+        elif col == 1:  # podwójne rozproszenie
+            if h == 0:
+                pos = h1(x, size, pos)
+            if h == 1:
+                pos = h2(x, size, pos)
+            if h == 2:
+                pos = h3(x, size, pos)
+
+    if list[pos] == x:
+        return pos
+    else:
+        print('Nie znaleziono elementu', x)
+
+'''
+funkcja sprawdzająca, czy tablica (list) jest zapełniona
+'''
+def is_full(list):
+    for s in list:
+        if s == '':
+            return False
+    return True
+
+'''
+funkcja ustawiająca elementy tablicy (list) w losowej kolejności
+'''
+def shuffle(list):
+    list_len = len(list)
+    for i in range(20000):
+        a1 = numpy.random.randint(list_len)
+        a2 = numpy.random.randint(list_len)
+        c = list[a1]
+        list[a1] = list[a2]
+        list[a2] = c
+
+'''
+funkcja wyświetlająca menu
+menu - lista list z opcjami menu,
+opt - lista z informacjami o aktualnie wybranymi opcjami
+'''
+def disp_menu(menu, opt):
+    print('Funkcja hashująca:        {}\n'
+          'Rozwiązywanie kolizji:    {}\n\n'
+          'Naciśnij ENTER, aby kontynuować'.format(menu[0][opt[0]], menu[1][opt[1]]))
+
+file = open('dict.txt', 'r')
+words = [s.rstrip() for s in file.readlines()]  # wczytanie słów
+file.close()
+menu = [['Pierwsza', 'Druga', 'Trzecia'], ['Liniowe', 'Podwójne']]
+opt = [0, 0]
+disp_menu(menu, opt)
+o = 0
+while True:
+    m = readchar.readkey()              # wybieranie menu
+    if m == 'w':        # w góre
+        o -= (-1)**(o+1)
+    if m == 's':        # w dół
+        o += (-1)**o
+    if m == 'a':        # w lewo
+        opt[o] = max(0, opt[o] - 1)
+    if m == 'd':        # w prawo
+        if o == 0:
+            opt[o] = min(2, opt[o] + 1)
+        elif o == 1:
+            opt[o] = min(1, opt[o] + 1)
+    if ord(m) == 13:
+        break
+    cls()
+    dmenu = [s for s in menu]
+    dmenu[o] = ['< ' + s + ' >' for s in menu[o]]
+    disp_menu(dmenu, opt)
+
+cls()
+
+menu1 = opt[0]
+menu2 = opt[1]
+
+shuffle(words)  # przetasowanie, by słowa były w kolejności losowej
+
+harray = ['' for i in range(20000)] # pusta tablica
+
+c = [0,0,0] # wyzerowany licznik
+
+# wstawianie słów do tablicy
+for i in range(5000):
+    print(i+1)
+    insert(words[i], harray, menu1, menu2)
+for i in range(5000,6000):
+    print(i+1)
+    insert(words[i], harray, menu1, menu2, c, 0)
+for i in range(6000,7000):
+    print(i+1)
+    insert(words[i], harray, menu1, menu2)
+for i in range(7000,8000):
+    print(i+1)
+    insert(words[i], harray, menu1, menu2, c, 1)
+for i in range(8000,9000):
+    print(i+1)
+    insert(words[i], harray, menu1, menu2)
+for i in range(9000,10000):
+    print(i+1)
+    insert(words[i], harray, menu1, menu2, c, 2)
+
+a=0
+for x in harray:
+    if x != '':
+        a += 1
+
+print('\nWstawianie 1000 nowych elementów przy wstawionych:\n'
+      '5000: średnio {} kolizji\n'
+      '7000: średnio {} kolizji\n'
+      '9000: średnio {} kolizji\n'.format(c[0]/1000,c[1]/1000,c[2]/1000))
+print('Wstawiono {}/10000 elementów'.format(a))
+pause = input()
